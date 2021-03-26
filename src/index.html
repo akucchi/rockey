@@ -1,62 +1,44 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<html>
+  <head>
+    <meta charset="utf-8" />
     <title>Rockey</title>
-    <link rel="stylesheet" href="index.css">
-</head>
-<body>
-    <ul>
-        <li>
-            <input type="text" class="text" name="filename" spellcheck="false" placeholder="File name">
-        </li>
-        <li>
-            <button class="button">
-                Start
-            </button>
-        </li>
-        <li>
-            <input type="checkbox" class="checkbox" name="cineBuddy">
-            <label for="cineBuddy">Cinematics Buddy</label>
-        </li>
-        <li>
-            <input type="checkbox" class="checkbox" name="shadowPlay">
-            <label for="cineBuddy">Nvidia ShadowPlay</label>
-        </li>
-    </ul>
     <script>
-        const { ipcRenderer } = require("electron")
-        let recording = false;
-        let button = document.querySelector(".button")
-        let filename = document.querySelector('input[name = "filename"]')
-        let cineBuddy = document.querySelector('input[name = "cineBuddy"]')
-        let shadowPlay = document.querySelector('input[name = "shadowPlay"]')
-
-        cineBuddy.checked = true;
-        shadowPlay.checked = true;
-
-        button.addEventListener("click", () => {
-            if (filename.value === '') {
-                return ipcRenderer.invoke("error", {
-                    title: 'Error',
-                    message: 'Filename must be specified!',
-                });
-            }
-            recording = !recording;
-            button.innerText = recording ? "Stop" : "Start";
-
-            filename.disabled = recording;
-            cineBuddy.disabled = recording;
-            shadowPlay.disabled = recording;
-
-            ipcRenderer.invoke("toggle", {
-                recording,
-                cineBuddy: cineBuddy.checked,
-                shadowPlay: shadowPlay.checked,
-                filename: filename.value
-            });
-        });
+      (() => {
+        if (process?.env?.NODE_ENV !== 'development') {
+          const link = document.createElement('link');
+          link.rel = 'stylesheet';
+          link.href = './dist/style.css';
+          // HACK: Writing the script path should be done with webpack
+          document.getElementsByTagName('head')[0].appendChild(link);
+        }
+      })();
     </script>
-</body>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      const scripts = [];
+
+      if (process.env.NODE_ENV === 'development') {
+        // Dynamically insert the DLL script in development env in the
+        // renderer process
+        scripts.push('../.erb/dll/renderer.dev.dll.js');
+
+        // Dynamically insert the bundled app script in the renderer process
+        const port = process.env.PORT || 1212;
+        scripts.push(`http://localhost:${port}/dist/renderer.dev.js`);
+      } else {
+        scripts.push('./dist/renderer.prod.js');
+      }
+
+      if (scripts.length) {
+        document.write(
+          scripts
+            .map((script) => `<script defer src="${script}"><\/script>`)
+            .join('')
+        );
+      }
+    </script>
+  </body>
 </html>
