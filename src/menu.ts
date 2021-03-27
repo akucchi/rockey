@@ -4,7 +4,11 @@ import {
   shell,
   BrowserWindow,
   MenuItemConstructorOptions,
+  dialog,
+  ipcMain,
 } from 'electron';
+import { readFileSync } from 'fs';
+import { Project } from './interfaces/project';
 
 interface DarwinMenuItemConstructorOptions extends MenuItemConstructorOptions {
   selector?: string;
@@ -198,8 +202,24 @@ export default class MenuBuilder {
         label: '&File',
         submenu: [
           {
-            label: '&Open',
+            label: '&Open Project',
             accelerator: 'Ctrl+O',
+            click: () => {
+              const files = dialog.showOpenDialogSync({properties: ["openFile"]});
+              if(!files) return;
+              const contents = readFileSync(files[0], "utf-8");
+              const project: Project = JSON.parse(contents);
+              this.mainWindow.webContents.send("load-project", project, files[0]); 
+            }
+          },
+          {
+            label: '&Import Replay',
+            accelerator: 'Ctrl+I',
+            click: () => {
+              const files = dialog.showOpenDialogSync({properties: ["openFile"]});
+              if(!files) return;
+              this.mainWindow.webContents.send("import-replay", files[0]); 
+            }
           },
           {
             label: '&Close',
