@@ -1,10 +1,11 @@
-import { ipcRenderer } from 'electron';
-import React, { useEffect, useState } from 'react';
+//import { ipcRenderer } from 'electron';
+import React from 'react';
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
-import {ProjectContents} from "./components/ProjectContents";
-import {Project} from "./interfaces/project";
-import {basename} from "path";
-const Hello = () => {
+//import {ProjectContents} from "./components/ProjectContents";
+//import {Project} from "./interfaces/project";
+//import {basename} from "path";
+import ProjectManager from './components/ProjectManager';
+/*const Hello = () => {
   const [project, setProject] = useState<Project>({"replays" : [], "cinematics": []});
   const [projectPath, setProjectPath] = useState<string | undefined>(undefined);
   const loadProject = (_event: any, project : Project, path: string) => {
@@ -34,12 +35,12 @@ const Hello = () => {
   });
   return <ProjectContents replays={project.replays} cinematics={project.cinematics}/>;
 };
-
+*/
 export default function App() {
   return (
     <Router>
       <Switch>
-        <Route path="/" component={Hello} />
+        <Route path="/" component={ProjectManager} />
       </Switch>
     </Router>
   );
