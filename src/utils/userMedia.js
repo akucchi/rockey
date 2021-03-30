@@ -5,6 +5,7 @@ export function getUserMedia(sourceId) {
       mandatory: {
         chromeMediaSource: 'desktop',
         chromeMediaSourceId: sourceId,
+        maxFrameRate: 60,
       },
     },
   });
