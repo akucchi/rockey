@@ -3,6 +3,9 @@
 BAKKESMOD_PLUGIN(RockeyPlugin, "Rockey plugin", "0.1", PLUGINTYPE_REPLAY)
 
 void RockeyPlugin::onLoad() {
+  activated = false;
+  hwnd = FindWindowA(NULL, "Rocket League (64-bit, DX11, Cooked)");
+
   gameWrapper->HookEvent(
       "Function TAGame.GameInfo_Replay_TA.EventReplayStarted",
       std::bind(&RockeyPlugin::onReplayStarted, this));
@@ -21,11 +24,41 @@ void RockeyPlugin::onLoad() {
       "rockey_roll",
       std::bind(&RockeyPlugin::onRoll, this, std::placeholders::_1),
       "Camera roll", PERMISSION_REPLAY);
+
+  cvarManager->registerNotifier(
+      "rockey_sendkey",
+      std::bind(&RockeyPlugin::onSendKey, this, std::placeholders::_1),
+      "Send key", PERMISSION_REPLAY);
+
+  cvarManager->registerNotifier("rockey_activate",
+                                std::bind(&RockeyPlugin::onActivate, this),
+                                "Activate", PERMISSION_ALL);
+
+  cvarManager->registerNotifier("rockey_deactivate",
+                                std::bind(&RockeyPlugin::onDeactivate, this),
+                                "Deactivate", PERMISSION_ALL);
+}
+
+void RockeyPlugin::onActivate() { activated = true; }
+void RockeyPlugin::onDeactivate() { activated = false; }
+
+void RockeyPlugin::onSendKey(std::vector<std::string> params) {
+  int key;
+  try {
+    key = std::stoi(params.at(1));
+  } catch (std::exception e) {
+    cvarManager->log(e.what());
+    return;
+  }
+  PostMessageA(hwnd, WM_KEYDOWN, key, NULL);
+  PostMessageA(hwnd, WM_KEYUP, key, NULL);
 }
 
 void RockeyPlugin::onReplayStarted() {
-  gameWrapper->SetTimeout(
-      [](GameWrapper *gw) { gw->GetCamera().SetCameraState("Fly"); }, 1);
+  if (activated) {
+    gameWrapper->SetTimeout(
+        [](GameWrapper *gw) { gw->GetCamera().SetCameraState("Fly"); }, 1);
+  }
 }
 
 void RockeyPlugin::onCameraRotate(std::vector<std::string> params) {
