@@ -1,8 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { desktopCapturer } from 'electron';
 import { getUserMedia } from '../utils/userMedia';
+import { useRocketLeague } from '../hooks/bakkesmod';
+import styled from 'styled-components';
 
-export function Preview({ sendCommand }: any) {
+const StyledVideo = styled.video`
+  height: 65vh;
+`;
+
+export function Preview() {
+  const { sendCommand } = useRocketLeague();
   const video = useRef<HTMLVideoElement>(null);
   const [keys] = useState<Map<string, boolean>>(new Map());
 
@@ -63,6 +70,17 @@ export function Preview({ sendCommand }: any) {
   };
 
   useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // console.log(event.key);
+      if (event.key === 'ArrowLeft') sendCommand(`rockey_sendkey 37`);
+      if (event.key === 'ArrowRight') sendCommand(`rockey_sendkey 39`);
+      if (event.key === ' ') sendCommand(`rockey_sendkey 160`);
+    };
+    document.addEventListener('keydown', handleKeyDown, false);
+    return () => document.removeEventListener('keydown', handleKeyDown, false);
+  }, []);
+
+  useEffect(() => {
     desktopCapturer.getSources({ types: ['window'] }).then(async (sources) => {
       for (const source of sources) {
         if (source.name === 'Rocket League (64-bit, DX11, Cooked)') {
@@ -77,5 +95,5 @@ export function Preview({ sendCommand }: any) {
     });
   }, [video]);
 
-  return <video width="640" height="360" ref={video} />;
+  return <StyledVideo ref={video} />;
 }
