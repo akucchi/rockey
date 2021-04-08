@@ -1,0 +1,13 @@
+{
+  "name": "plugin",
+  "version": "1.0.0",
+  "description": "Plugin for BakkesMod",
+  "license": "MIT",
+  "scripts": {
+    "build": "msbuild RockeyPlugin.sln /t:Build /v:q /nologo /p:Configuration=Release /p:Platform=x64",
+    "load": "node ./loader.js"
+  },
+  "dependencies": {
+    "ws": "^7.4.4"
+  }
+}
