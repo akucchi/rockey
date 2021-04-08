@@ -1,7 +1,12 @@
+import { readFileSync } from 'fs';
 import { useEffect, useState } from 'react';
+import { DollyCamPath } from '../interfaces/project';
 
-const BAKKESMOD_SERVER = 'ws://127.0.0.1:9002';
-const RCON_PASSWORD = 'password';
+export const BAKKESMOD_SERVER = 'ws://127.0.0.1:9002';
+export const RCON_PASSWORD = 'password';
+
+// TODO: Find Rocket League path.
+export const WIN64_PATH = `C:/Program Files (x86)/Steam/steamapps/common/rocketleague/Binaries/Win64/.rockey`;
 
 export const useRocketLeague = () => {
   const [ws] = useState<WebSocket>(new WebSocket(BAKKESMOD_SERVER));
@@ -9,6 +14,7 @@ export const useRocketLeague = () => {
   useEffect(() => {
     ws.addEventListener('open', () => {
       ws.send(`rcon_password ${RCON_PASSWORD}`);
+      ws.send(`dolly_render 0`);
     });
     return () => ws.close();
   }, [ws]);
@@ -27,9 +33,20 @@ export const useRocketLeague = () => {
     );
   };
 
+  const getDollyPath = async () => {
+    ws.send(`dolly_path_save .rockey`);
+    await new Promise((r) => setTimeout(r, 300));
+    let path: DollyCamPath = JSON.parse(readFileSync(WIN64_PATH).toString());
+    Object.keys(path).forEach((key) => {
+      path[key].frame = Math.round(path[key].frame * 100) / 100;
+    });
+    return path;
+  };
+
   return {
     unrealCommand,
     loadReplay,
     sendCommand: (command: string) => ws.send(command),
+    getDollyPath,
   };
 };
